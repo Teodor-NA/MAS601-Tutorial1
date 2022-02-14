@@ -3,6 +3,8 @@ clear; clc;
 %% Parameters
 global m1 m2 m3 k1 k2 k3 b1 b2 b3 a d c L0 t1 t2 t3 F1 F2;
 
+visu = true;
+
 m1 = 1; % [kg]
 m2 = 1; % [kg]
 m3 = 8; % [kg]
@@ -46,10 +48,12 @@ Tspan = 0:dt:tEnd;
 %% Simulation
 options = odeset('RelTol', 1e-6, 'AbsTol', 1e-9);
 [T, qT] = ode45(@ODE_Funct, Tspan, q, options);
+N = length(T);
 
-qDot = zeros(length(T), 6);
-fric = zeros(length(T), 2);
-for i = 1:length(T)
+qDot = zeros(N, 6);
+fric = zeros(N, 2);
+f = zeros(1, N);
+for i = 1:N
     qDot(i, :) = ODE_Funct(T(i), qT(i, :));
     
     x1 = qT(i, 1);
@@ -69,6 +73,16 @@ for i = 1:length(T)
         fric(i, 2) = 1;
     else
         fric(i, 2) = 0;
+    end
+    
+    if T(i) < t1
+        f(i) = F1*T(i)/t1;
+    elseif T(i) < t2
+        f(i) = F1 + (F2 - F1)/(t2 - t1)*(T(i) - t1);
+    elseif T(i) < t3
+        f(i) = F2 + (0 - F2)/(t3 - t2)*(T(i) - t2);
+    else
+        f(i) = 0;
     end
 end
 
@@ -104,3 +118,40 @@ legend('x_1', 'x_2')
 xlabel('Time [s]');
 ylabel('Contact');
 
+%% Visualize
+tEnd = 50;
+stp = 5;
+spd = 1;
+if visu
+    close all;
+    figHandle = figure;
+    xlabel('Position [m]')
+    figHandle.WindowState = 'maximized';
+    axHandle = gca;
+    axis equal;
+    axis([-8, 8, -2.5, 2.5]);
+    hold on;
+    for i = 1:stp:N
+        cla(axHandle);
+        title(axHandle, ['t: ', num2str(T(i), '%0.3f'), '[s], F: ', num2str(f(i), '%2.2f'), '[N]']);
+        
+        if fric(i, 1)
+            boxColor1 = 'c';
+        else
+            boxColor1 = 'b';
+        end
+        if fric(i, 2)
+            boxColor2 = 'm';
+        else
+            boxColor2 = 'r';
+        end
+        
+        drawBox(axHandle, [qT(i, 1) + d/2; 0], 0, d, d, boxColor1, 4);
+        drawBox(axHandle, [qT(i, 2) + d/2; 0], 0, d, d, boxColor2, 4);
+        drawBox(axHandle, [qT(i, 3) + 4*d; d+0.05], 0, d, 8*d, 'g', 4);
+        if T(i) >= tEnd
+            break;
+        end
+        pause(dt*stp/spd);
+    end
+end
