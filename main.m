@@ -11,8 +11,8 @@ k1 = 4; % [N/m]
 k2 = 4; % [N/m]
 k3 = 5; % [N/m]
 
-b1 = 2; % [Ns/m]
 b2 = 4; % [Ns/m]
+b1 = 2; % [Ns/m]
 b3 = 2; % [Ns/m]
 
 a = 0.4; % [m]
@@ -48,27 +48,59 @@ options = odeset('RelTol', 1e-6, 'AbsTol', 1e-9);
 [T, qT] = ode45(@ODE_Funct, Tspan, q, options);
 
 qDot = zeros(length(T), 6);
+fric = zeros(length(T), 2);
 for i = 1:length(T)
-    qDot(i, :) = ODE_Funct(T(i), qT(i, :)); 
+    qDot(i, :) = ODE_Funct(T(i), qT(i, :));
+    
+    x1 = qT(i, 1);
+    x2 = qT(i, 2);
+    x3 = qT(i, 3);
+    
+    if (x3 - x1 > d)
+        fric(i, 1) = -1;
+    elseif (x1 > x3 + 8*d)
+        fric(i, 1) = 1;
+    else
+        fric(i, 1) = 0;
+    end
+    if (x3 - x2 > d) 
+        fric(i, 2) = -1;
+    elseif (x2 > x3 + 8*d)
+        fric(i, 2) = 1;
+    else
+        fric(i, 2) = 0;
+    end
 end
 
 %% Plot
 close all;
 figure;
 plot(T, qT(:, 1:3));
-legend('x_1', 'x_2', 'x_3')
+hold on
+plot(T, fric)
+legend('x_1', 'x_2', 'x_3', 'Contact 1', 'Contact 2')
 xlabel('Time [s]');
 ylabel('Position [m]');
 
 figure;
 plot(T, qT(:, 4:6))
-legend('dx_1', 'dx_2', 'dx_3')
+hold on
+plot(T, fric)
+legend('dx_1', 'dx_2', 'dx_3', 'Contact 1', 'Contact 2')
 xlabel('Time [s]');
 ylabel('Velocity [m/s]');
 
 figure;
 plot(T, qDot(:, 4:6))
-legend('ddx_1', 'ddx_2', 'ddx_3')
+hold on
+plot(T, fric)
+legend('ddx_1', 'ddx_2', 'ddx_3', 'Contact 1', 'Contact 2')
 xlabel('Time [s]');
 ylabel('Acceleration [m/s^2]');
+
+figure;
+plot(T, fric)
+legend('x_1', 'x_2')
+xlabel('Time [s]');
+ylabel('Contact');
 

@@ -12,10 +12,18 @@ function qDot = ODE_Funct(t, q)
     Fk2 = (x2 - x1 - d - L0)*k2;
     Fk3 = (x3 - L0)*k3;
 
-     Fb1 = (xDot1 - xDot3)*b1;
-     Fb2 = xDot1*b2;
-     Fb3 = (xDot2 - xDot3)*b3;
-
+    if (x3 - x1 > d) || (x1 > x3 + 8*d)
+        Fb1 = 0;
+    else
+        Fb1 = (xDot1 - xDot3)*b1;
+    end
+    Fb2 = xDot1*b2;
+    if (x3 - x2 > d) || (x2 > x3 + 8*d)
+        Fb3 = 0;
+    else
+        Fb3 = (xDot2 - xDot3)*b3;
+    end
+    
 %    Fb1 = 0;
 %    Fb2 = 0;
 %    Fb3 = 0;
@@ -30,7 +38,7 @@ function qDot = ODE_Funct(t, q)
         f = 0;
     end
     
-%      f = 10;
+%      f = 0;
 
 %     f = 10;
     
