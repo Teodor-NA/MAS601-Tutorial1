@@ -1,5 +1,5 @@
-function drawLine(axHandle, pos, angle, length, color, thickness)
-    rot = [cos(angle); sin(angle)];
+function drawLine(axHandle, pos, rot, length, color, thickness)
+%    rot = [cos(angle); sin(angle)];
     offs = length/2*rot;
     
     pt0 = pos - offs;

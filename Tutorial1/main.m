@@ -14,8 +14,8 @@ k2 = 4; % [N/m]
 k3 = 5; % [N/m]
 
 b2 = 4; % [Ns/m]
-b1 = 2; % [Ns/m]
-b3 = 2; % [Ns/m]
+b1 = 15; % [Ns/m]
+b3 = 15; % [Ns/m]
 
 a = 0.4; % [m]
 d = 0.2; % [m]
@@ -120,10 +120,17 @@ ylabel('Contact');
 
 %% Visualize
 tEnd = 50;
+fps = 60;
+stp = (1/fps)/dt
 stp = 5;
-spd = 1;
+spd = 2;
 if visu
     close all;
+    angle = 0;
+    ca = cos(angle);
+    sa = sin(angle);
+    rot = [ca, -sa; sa, ca];
+
     figHandle = figure;
     xlabel('Position [m]')
     figHandle.WindowState = 'maximized';
@@ -131,7 +138,8 @@ if visu
     axis equal;
     axis([-8, 8, -2.5, 2.5]);
     hold on;
-    for i = 1:stp:N
+    for i = 1:stp:N   
+        tic;
         cla(axHandle);
         title(axHandle, ['t: ', num2str(T(i), '%0.3f'), '[s], F: ', num2str(f(i), '%2.2f'), '[N]']);
         
@@ -146,12 +154,13 @@ if visu
             boxColor2 = 'r';
         end
         
-        drawBox(axHandle, [qT(i, 1) + d/2; 0], 0, d, d, boxColor1, 4);
-        drawBox(axHandle, [qT(i, 2) + d/2; 0], 0, d, d, boxColor2, 4);
-        drawBox(axHandle, [qT(i, 3) + 4*d; d+0.05], 0, d, 8*d, 'g', 4);
+        drawBox(axHandle, [qT(i, 1) + d/2; 0], rot, d, d, boxColor1, 4);
+        drawBox(axHandle, [qT(i, 2) + d/2; 0], rot, d, d, boxColor2, 4);
+        drawBox(axHandle, [qT(i, 3) + 4*d; d+0.05], rot, d, 8*d, 'g', 4);
         if T(i) >= tEnd
             break;
         end
-        pause(dt*stp/spd);
+        delta = toc;
+        pause(dt*stp/spd - delta);
     end
 end
