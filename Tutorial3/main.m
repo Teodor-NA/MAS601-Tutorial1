@@ -159,11 +159,12 @@ options = odeset('RelTol', 1e-15, 'AbsTol', 1e-15);
 %% Plot
 close all;
 
+% Driven
 plotRows = 2;
 plotCols = 3;
 plotIndex = 0;
 
-figure;
+fig = figure;
 plotIndex = plotIndex + 1;
 subplot(plotRows, plotCols, plotIndex);
 hold on
@@ -228,11 +229,19 @@ set(hl, 'Interpreter', 'latex');
 xlabel('Time [s]');
 ylabel('Acceleration [m/s^2]');
 
+sgtitle('Driven');
+
+% Torque
+
 figure;
 plot(tSpan, lambdaT(9,:), 'r');
 legend('T')
 xlabel('Time [s]');
 ylabel('Torque [Nm]');
+title('Torque');
+
+
+% Simulated
 
 plotIndex = 0;
 plotRows = 2;
@@ -244,7 +253,7 @@ hold on
 plot(tSpan, 180/pi*qT(:,3), 'r');
 plot(tSpan, 180/pi*qT(:,6), 'b');
 plot(tSpan, 180/pi*qT(:,9), 'g');
-legend('\thetaSim_2','\thetaSim_3', '\thetaSim_4')
+legend('\theta_2','\theta_3', '\theta_4')
 xlabel('Time [s]');
 ylabel('Angle [\circ]');
 
@@ -254,7 +263,7 @@ hold on
 plot(tSpan, qT(:,12), 'r');
 plot(tSpan, qT(:,15), 'b');
 plot(tSpan, qT(:,18), 'g');
-hl = legend('$\dot{{\theta}Sim_2}$','$\dot{{\theta}Sim_3}$', '$\dot{{\theta}Sim_4}$');
+hl = legend('$\dot{\theta_2}$','$\dot{\theta_3}$', '$\dot{\theta_4}$');
 set(hl, 'Interpreter', 'latex');
 xlabel('Time [s]');
 ylabel('Angular velocity [rad/s]');
@@ -265,7 +274,7 @@ hold on
 plot(tSpan, qT(:,1:2));
 plot(tSpan, qT(:,4:5));
 plot(tSpan, qT(:,7:8));
-legend('xSim_2', 'ySim_2', 'xSim_3', 'ySim_3', 'xSim_4', 'ySim_4')
+legend('x_2', 'y_2', 'x_3', 'y_3', 'x_4', 'y_4')
 xlabel('Time [s]');
 ylabel('Position [m]');
 
@@ -275,11 +284,12 @@ hold on
 plot(tSpan, qT(:,10:11));
 plot(tSpan, qT(:,13:14));
 plot(tSpan, qT(:,16:17));
-hl = legend('$\dot{xSim_2}$', '$\dot{ySim_2}$', '$\dot{xSim_3}$', '$\dot{ySim_3}$', '$\dot{xSim_4}$', '$\dot{ySim_4}$');
+hl = legend('$\dot{x_2}$', '$\dot{y_2}$', '$\dot{x_3}$', '$\dot{y_3}$', '$\dot{x_4}$', '$\dot{y_4}$');
 set(hl, 'Interpreter', 'latex');
 xlabel('Time [s]');
 ylabel('Velocity [m/s]');
 
+sgtitle('Simulated');
 
 %% Animate driven
 if animate
@@ -299,7 +309,7 @@ if animate
     for i = 1:stp:N
         tic;
         cla(axHandle);
-        title(axHandle, ['t: ', num2str(tSpan(i), '%0.3f'), '[s], Torque: ', num2str(lambdaT(9, i), '%1.2f'), ' [Nm]']);
+        title(axHandle, ['Driven - t: ', num2str(tSpan(i), '%.1f'), '[s] - Torque: ', num2str(lambdaT(9, i), '%.3f'), ' [Nm]']);
         
         drawBox(axHandle, [0; 0], 0, 0.2, 0.2, 'k', 4);
         drawBox(axHandle, [L1; 0], 0, 0.2, 0.2, 'k', 4);
@@ -322,6 +332,7 @@ if animateSim
     spd = 1;
 
     figHandle = figure;
+    title('Simulated');
     xlabel('X [m]')
     ylabel('Y [m]')
     figHandle.WindowState = 'maximized';
@@ -333,7 +344,7 @@ if animateSim
     for i = 1:stp:N
         tic;
         cla(axHandle);
-        title(axHandle, ['t: ', num2str(tSpan(i), '%0.3f'), '[s], Torque: ', num2str(lambdaT(9, i), '%1.2f'), ' [Nm]']);
+        title(axHandle, ['Simulated - t: ', num2str(tSpan(i), '%.1f'), '[s] - Torque: ', num2str(lambdaT(9, i), '%.3f'), ' [Nm]']);
         
         drawBox(axHandle, [0; 0], 0, 0.2, 0.2, 'k', 4);
         drawBox(axHandle, [L1; 0], 0, 0.2, 0.2, 'k', 4);
