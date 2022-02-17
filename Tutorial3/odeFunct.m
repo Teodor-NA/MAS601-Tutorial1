@@ -1,46 +1,57 @@
 function qDot = odeFunct(t, q)
 
-global L1 L2 L3 L4 Theta1 MInv T tSpan dt m2 m3 m4 g
-    
-    s2 = q(1:2);
+global L2 L3 L4 M MInv Theta2Max h
+    % Extract what we need from q
     theta2 = q(3);
-    s3 = q(4:5);
     theta3 = q(6);
-    s4 = q(7:8);
     theta4 = q(9);
-    sDot2 = q(10:11);
-    thetaDot2 = q(12);
-    sDot3 = q(13:14);
-    thetaDot3 = q(15);
-    sDot4 = q(16:17);
-    thetaDot4 = q(18);
+    dtheta2 = q(12);
+    dtheta3 = q(15);
+    dtheta4 = q(18);
 
+    % Pre-compute sin and cos values
+    c2 = cos(theta2);
+    s2 = sin(theta2);
+    c3 = cos(theta3);
+    s3 = sin(theta3);
+    c4 = cos(theta4);
+    s4 = sin(theta4);
+    c4_pi = cos(theta4 - pi);
+    s4_pi = sin(theta4 - pi);
+
+    % Find trajectory angle, angle vel and angle acc for current timestep
+    qRef = traj(t, Theta2Max);
+    
+    % Find appropriate Torque for current timestep
+    [pos, ~, acc] = invKin(qRef, [theta3; theta4], [L2; L3; L4]);
+    lambdaT = invDyn(pos, acc, M, h, [L2; L3; L4]);
+    T = lambdaT(9);
+    
+    % Calculate forward dynamics
     D = zeros(8,9);
-    D(1:2, 1:3) = [eye(2), L2/2*[sin(theta2); -cos(theta2)]];
-    D(3:4, 1:3) = [-eye(2), L2/2*[sin(theta2); -cos(theta2)]];
-    D(3:4, 4:6) = [eye(2), L3/2*[sin(theta3); -cos(theta3)]];
-    D(5:6, 4:6) = [-eye(2), L3/2*[sin(theta3); -cos(theta3)]];
-    D(5:6, 7:9) = [eye(2), L4/2*[sin(theta4); -cos(theta4)]];
-    D(7:8, 7:9) = [eye(2), L4/2*[sin(theta4-pi); -cos(theta4-pi)]];
+    D(1:2, 1:3) = [eye(2), L2/2*[s2; -c2]];
+    D(3:4, 1:3) = [-eye(2), L2/2*[s2; -c2]];
+    D(3:4, 4:6) = [eye(2), L3/2*[s3; -c3]];
+    D(5:6, 4:6) = [-eye(2), L3/2*[s3; -c3]];
+    D(5:6, 7:9) = [eye(2), L4/2*[s4; -c4]];
+    D(7:8, 7:9) = [eye(2), L4/2*[s4_pi; -c4_pi]];
     DTrans = D';
         
     gamma = [
-        -L2*(thetaDot2^2)/2*[cos(theta2); sin(theta2)];
-        -L2*(thetaDot2^2)/2*[cos(theta2); sin(theta2)] - L3*(thetaDot3^2)/2*[cos(theta3); sin(theta3)];
-        -L3*(thetaDot3^2)/2*[cos(theta3); sin(theta3)] - L4*(thetaDot4^2)/2*[cos(theta4); sin(theta4)];
-        -L4*(thetaDot4^2)/2*[cos(theta4-pi); sin(theta4-pi)];        
+        -L2*(dtheta2^2)/2*[c2; s2];
+        -L2*(dtheta2^2)/2*[c2; s2] - L3*(dtheta3^2)/2*[c3; s3];
+        -L3*(dtheta3^2)/2*[c3; s3] - L4*(dtheta4^2)/2*[c4; s4];
+        -L4*(dtheta4^2)/2*[c4_pi; s4_pi];        
     ];
     
-    index = find(abs(tSpan - t) < dt/2);
+    ha = h + [zeros(2,1); T; zeros(6,1)];
     
-    if length(index) ~= 1
-        index
-    end
+    tmpA = MInv*DTrans;
+    tmpB = D*tmpA;
+    tmpC = MInv*ha;
     
-    ha = [0; -m2*g; T(index); 0; -m3*g; 0; 0; -m4*g; 0;];
-    
-    cDotDot = MInv*(DTrans)*inv(D*MInv*(DTrans))*(gamma - D*MInv*ha) + MInv*ha;
-    
+    cDotDot = tmpA/tmpB*(gamma - D*tmpC) + tmpC;
+ 
     qDot = [q(10:18); cDotDot];
 
 end

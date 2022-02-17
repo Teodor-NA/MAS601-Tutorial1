@@ -1,13 +1,13 @@
 % Inputs
 % qRef = [theta2; d/dt(theta2); d^2/dt^2(theta2)] (reference trajectory)
-% theta34 = [theta3; theta4] (initial guesses)
+% theta34 = [theta3; theta4]
 % L = [L2; L3; L4]
 % options = fsolve options
 % Outputs
 % pos = [x2; y2; theta2; x3; y3; theta3; x4; y4; theta4]
 % vel = d/dt(pos)
 % acc = d/dt(vel)
-function [pos, acc, vel] = invKin(qRef, theta34, L, options)
+function [pos, vel, acc] = invKin(qRef, theta34, L)
     % Angular kinematics
     % Position
     theta2 = qRef(1);
@@ -18,10 +18,8 @@ function [pos, acc, vel] = invKin(qRef, theta34, L, options)
     L3 = L(2);
     L4 = L(3);
 
-    theta34New = fsolve(@fourbar, theta34, options, theta2);
-
-    theta3 = theta34New(1);
-    theta4 = theta34New(2);
+    theta3 = theta34(1);
+    theta4 = theta34(2);
     
     % Pre-compute sin and cos values
     c2 = cos(theta2);

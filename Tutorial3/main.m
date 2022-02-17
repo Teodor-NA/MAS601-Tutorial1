@@ -1,6 +1,6 @@
 clear; clc;
 
-global L1 L2 L3 L4 Theta1 MInv T tSpan dt m2 m3 m4 g
+global L1 L2 L3 L4 Theta1 M MInv tSpan dt m2 m3 m4 g Theta2Max h
 
 animate = false;
 animateSim = false;
@@ -9,7 +9,7 @@ animateSim = false;
 Theta1 = 0; 
 L1 = 5;  % m 
 
-Theta2Max = .1;
+Theta2Max = 1;
 
 m2 = 2; % kg 
 L2 = 0.5; %m 
@@ -27,16 +27,16 @@ theta2 = pi/4;
 g = 9.81;
 M = diag([m2, m2, Jbar2, m3, m3, Jbar3, m4, m4, Jbar4]);
 MInv = M^-1;
-ha = [0; -m2*g; 0; 0; -m3*g; 0; 0; -m4*g; 0;];
+h = [0; -m2*g; 0; 0; -m3*g; 0; 0; -m4*g; 0;];
 
 dt = 0.01;
-tEnd = 30;
+tEnd = 20;
 tSpan = 0:dt:tEnd;
 N = length(tSpan);
 
 theta34Estimate = [15; 300]*pi/180;% estimates
 
-%% Solve
+%% Solve driven
 pos = zeros(9, N);
 vel = zeros(9, N);
 acc = zeros(9, N);
@@ -44,30 +44,37 @@ lambdaT = zeros(9, N);
 
 L = [L2; L3; L4];
 
-options = optimset('display', 'off');
+fsolveOpt = optimset('display', 'off');
 for i = 1:N
     %% Single loop
     % Inverse Kinematics
-    qRef = positionProfile(tSpan(i), Theta2Max);
+    qRef = traj(tSpan(i), Theta2Max);
 
     if (i == 1)
-        [pos(:, i), vel(:, i), acc(:, i)] = invKin(qRef, theta34Estimate, L, options);
+        theta34 = fsolve(@fourbar, theta34Estimate, fsolveOpt, qRef(1));
     else
-        [pos(:, i), vel(:, i), acc(:, i)] = invKin(qRef, [pos(6, i - 1); pos(9, i - 1)], L, options);
+        theta34 = fsolve(@fourbar, [pos(6, i - 1); pos(9, i - 1)], fsolveOpt, qRef(1));
     end
     
+    [pos(:, i), vel(:, i), acc(:, i)] = invKin(qRef, theta34, L);
+    
     % Inverse Dynamics
-    lambdaT(:, i) = invDyn(pos(:, i), acc(:, i), M, ha, L);
+    lambdaT(:, i) = invDyn(pos(:, i), acc(:, i), M, h, L);
     
 end
 
 
-%% Invoking ode45
+%% Solve simulated
+% Use the first result from driven inverse kinematics as initial conditions
 q = [pos(:,1); vel(:,1)];
 
-T = lambdaT(9, :);
-options = odeset('RelTol', 1e-15, 'AbsTol', 1e-15);
+% Custom tolerance
+% odeOpt = odeset('RelTol', 1e-13, 'AbsTol', 1e-15);
+% [Time, qT] = ode45(@odeFunct, tSpan, q, odeOpt);
+
+% Default tolerance
 [Time, qT] = ode45(@odeFunct, tSpan, q);
+
 
 %% Plot
 close all;
