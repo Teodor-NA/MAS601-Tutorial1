@@ -1,5 +1,6 @@
 clc; clear;
 
+%% Parameters
 % First order
 K1 = 3;
 tau = 0.3;
@@ -20,8 +21,8 @@ t1 = 0.7;
 % Step/ramp amplitude
 A = 1;
 
+%% Setup
 t = 0:dt:tEnd;
-
 N = length(t);
 
 us = zeros(1, N);
@@ -36,6 +37,8 @@ ddys2 = zeros(1, N);
 yr2 = zeros(1, N);
 dyr2 = zeros(1, N);
 ddyr2 = zeros(1, N);
+
+%% Simulate
 for i = 2:N
     % Current time
     tc = t(i);
@@ -61,9 +64,21 @@ end
 
 
 %% Plot
+close all;
 figure;
 plot(t, [us; ur; ys1; yr1]);
+xlabel('Time [s]');
+ylabel('Amplitude [-]');
+legend('Step reference', 'Ramp reference', 'Step response', 'Ramp response');
+title(['First order, K = ', num2str(K1), ', \tau = ', num2str(tau)]);
+
+figure;
 plot(t, [us; ur; ys2; yr2]);
+xlabel('Time [s]');
+ylabel('Amplitude [-]');
+legend('Step reference', 'Ramp reference', 'Step response', 'Ramp response');
+title(['Second order, K = ', num2str(K2), ', \omega_c = ', ...
+    num2str(wc), ', \zeta = ', num2str(z)]);
 
 
 function [y, dy] = firstOrder(y_in, u, K, tau, dt)
