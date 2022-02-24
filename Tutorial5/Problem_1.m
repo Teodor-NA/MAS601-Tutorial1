@@ -65,21 +65,47 @@ end
 
 %% Plot
 close all;
-figure;
-plot(t, [us; ur; ys1; yr1]);
-xlabel('Time [s]');
-ylabel('Amplitude [-]');
-legend('Step reference', 'Ramp reference', 'Step response', 'Ramp response');
-title(['First order, K = ', num2str(K1), ', \tau = ', num2str(tau)]);
+yMaxRight = max([ys1, yr1])*1.1;
+yFinalRight = ys1(end);
+yMaxLeft = yMaxRight/yFinalRight;
 
 figure;
-plot(t, [us; ur; ys2; yr2]);
+title(['First order, K = ', num2str(K1), ', \tau = ', num2str(tau)]);
+hold on
+
+yyaxis left
+plot(t, [us; ur]);
 xlabel('Time [s]');
-ylabel('Amplitude [-]');
+ylabel('Reference [-]');
+axis([0, tEnd, 0, yMaxLeft]);
+
+yyaxis right
+plot(t, [ys1; yr1]);
+ylabel('Response [-]');
 legend('Step reference', 'Ramp reference', 'Step response', 'Ramp response');
+axis([0, tEnd, 0, yMaxRight]);
+
+
+yMaxRight = max([ys2, yr2])*1.1;
+yFinalRight = ys2(end);
+yMaxLeft = yMaxRight/yFinalRight;
+
+figure;
 title(['Second order, K = ', num2str(K2), ', \omega_c = ', ...
     num2str(wc), ', \zeta = ', num2str(z)]);
+hold on;
 
+yyaxis left
+plot(t, [us; ur]);
+xlabel('Time [s]');
+ylabel('Reference [-]');
+axis([0, tEnd, 0, yMaxLeft]);
+
+yyaxis right
+plot(t, [ys2; yr2]);
+ylabel('Response [-]');
+legend('Step reference', 'Ramp reference', 'Step response', 'Ramp response');
+axis([0, tEnd, 0, yMaxRight]);
 
 function [y, dy] = firstOrder(y_in, u, K, tau, dt)
     dy = (K*u - y_in)/tau;

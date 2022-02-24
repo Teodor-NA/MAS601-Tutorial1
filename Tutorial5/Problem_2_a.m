@@ -27,11 +27,10 @@ N = length(t);
 % Reference [rad/s]
 wref = zeros(1, N);
 Mm = zeros(1, N);
-% State variables [theta, w, int(ew)] (theta is not actually a state variable, but I
-% want it for plotting)
-q = zeros(3, N);
-% Derivative of state variables [w, d/dt(w), ew]
-dq = zeros(3, N);
+% State variables [w, int(ew)] 
+q = zeros(2, N);
+% Derivative of state variables [d/dt(w), ew]
+dq = zeros(2, N);
 
 %% Simulation
 for i = 2:N
@@ -49,19 +48,33 @@ end
 
 %% Plot
 close all;
-figure;
-plot(t, [wref; q(2,:)]);
 
-% figure;
-% plot(t, Mm);
+yMax = max(q(1, :));
+yMin = min(q(1, :));
+yOffs = (yMax - yMin)*0.05;
 
 figure;
-plot(t, dq(3, :));
+plot(t, [wref; q(1,:)]);
+axis([t(1), t(end), yMin - yOffs, yMax + yOffs]);
+xlabel('Time [s]');
+ylabel('Velocity [rad/s]');
+legend('Reference', 'Response');
+
+yMax = max(dq(2, :));
+yMin = min(dq(2, :));
+yOffs = (yMax - yMin)*0.05;
+
+figure;
+plot(t, dq(2, :));
+xlabel('Time [s]');
+ylabel('Velocity [rad/s]');
+legend('Error');
+axis([t(1), t(end), yMin - yOffs, yMax + yOffs]);
 
 %% Functions
 function [dq, Mm] = sim(q, wref, t, Jeff, Meff, Mmin, Mmax, kp, Ti)
-    w = q(2);
-    ew_int = q(3);
+    w = q(1);
+    ew_int = q(2);
 
     ew = wref - w;
     
@@ -74,7 +87,7 @@ function [dq, Mm] = sim(q, wref, t, Jeff, Meff, Mmin, Mmax, kp, Ti)
     
     dw = (Mm - Meff)/Jeff;
     
-    dq = [w, dw, ew];
+    dq = [dw; ew];
 end
 
 function y = lim(xMin, x, xMax)
